@@ -55,8 +55,6 @@ if (isset($_POST['simpan'])) {
     header("laporan_dsn.php");
 ?>
 
-// MYSQLI QUERY UPDATE LIAT SISWA //
-
 <?php
 if (isset($_POST['update'])) {
    $server = "localhost";
@@ -329,7 +327,7 @@ echo "<tbody>";
 // $sqls = mysqli_query($koneksi,"select dk.kodematkul, dt.koderuang, dt.kodehari, dt.kodejam, dt.kodejam2 
 //     from detailjadwal dt, detailkelas dk where 
 //     dt.kodekelas=dk.kodekelas and dt.kodeprodi=dk.kodeprodi group by dt.iddetail") 
-$sql = mysqli_query($koneksi, "select pg.namapegawai, ta.tahunajaran, sem.`NAMASEMESTER`, 
+$sql = mysqli_query($koneksi, "select pd.nip, pg.namapegawai, ta.tahunajaran, sem.`NAMASEMESTER`, 
 CASE 
     WHEN uts_or_uas=0 THEN  'UTS'
     ELSE  'UAS'
@@ -339,26 +337,25 @@ WHERE pd.nip=pg.`NIP`AND ta.`KODETHNAJARAN`=pd.kd_thn_ajaran AND sem.`KODESEMEST
         or die (mysqli_error($koneksi));
 mysqli_select_db($koneksi,$nama_db) or die("Gagal memilih database!");
 $no = 0;
-while ($row = mysqli_fetch_array($sql)){
+while ($row = mysqli_fetch_assoc($sql)){
     $no = $no+1;    
-	$ta=mysqli_fetch_array(mysqli_query($koneksi,"select namapegawai from pegawai where nip ='".$row[0]."'"));
+	$ta=mysqli_fetch_array(mysqli_query($koneksi,"select * from pengawasdosen "));
 // $sm=mysqli_fetch_array(mysqli_query($koneksi,"select  from ruangan where koderuang='".$row[1]."'"));
 // $hr=mysqli_fetch_array(mysqli_query($koneksi,"select * from hari where kodehari='".$row[2]."'"));
 // $j1=mysqli_fetch_array(mysqli_query($koneksi,"select * from jam where kodejam='".$row[3]."'"));
 // $j2=mysqli_fetch_array(mysqli_query($koneksi,"select * from jam where kodejam='".$row[4]."'"));
 ?>
     <tr>
-        <td><?php echo $row[0]; ?> </td>
-        <td><?php echo $row[1];?></td>
-        <td><?php echo $row[2];?></td>
-		<td><?php echo $row[3];?></td>
+        <td><?php echo $row['namapegawai']; ?> </td>
+        <td><?php echo $row['tahunajaran'];?></td>
+        <td><?php echo $row['NAMASEMESTER'];?></td>
+		<td><?php echo $row['MASA UJIAN'];?></td>
+		
         <td>
-            <button id="editButton" onclick="openPopup()" class="edit-button">
-                <ion-icon name="create-outline"></ion-icon>
-            </button>
-            <button id="deleteButton" class="delete-button">
-                <a href="" ><ion-icon name="close-circle-outline"></ion-icon></a>
-            </button>
+            <a href="edit-dosen.php?id=<?php echo $row['nip']; ?>" class="btn btn-primary"><ion-icon name="create-outline"></a>
+            
+            <a href="delete-dosen.php?id=<?php echo $row['nip']; ?> " class="btn btn-primary"><ion-icon name="close-circle-outline"></ion-icon></a>
+            
         </td>
         
     </tr>
@@ -386,18 +383,22 @@ echo "</table>";
             </div>
 			
                 <!-- /.col-lg-12 -->
+                    <?php $sql = mysqli_query($koneksi, "select pd.nip, pg.namapegawai, ta.tahunajaran, sem.`NAMASEMESTER`, 
+                                CASE 
+                                    WHEN uts_or_uas=0 THEN  'UTS'
+                                    ELSE  'UAS'
+                                END AS 'MASA UJIAN'
+                                from pengawasdosen pd, pegawai pg, tahunajaran ta, semester sem 
+                                WHERE pd.nip=pg.`NIP`AND ta.`KODETHNAJARAN`=pd.kd_thn_ajaran AND sem.`KODESEMESTER`=pd.kd_semester")
+                                        or die (mysqli_error($koneksi));
+                                mysqli_select_db($koneksi,$nama_db) or die("Gagal memilih database!");
+                                $no = 0;
+                                while ($row = mysqli_fetch_assoc($sql)){
+                                    $no = $no+1;    ?>
                     <div class="container">
                         <div id="popUpForm">
                             <div class="popUp">
                             <form method="POST" action="" id="updateForm">
-                                <?php
-                                include('../../../koneksi.php');   
-                                $dosen=$_GET[]
-                                $namaDosen = mysqli_query($koneksi, "select namapegawai from pegawai where nip=$dosen");
-                                $tahunAjar = mysqli_query($koneksi, "SELECT tahunajaran FROM tahunajaran ta, pengawasdosen pd  where pd.kd_thn_ajaran=ta.kodethnajaran AND nip=$dosen");
-                                $sems = mysqli_query($koneksi, "SELECT namasemester FROM semester se, pengawasdosen pd where se.kodesemester=pd.kd_semester AND nip=$dosen");
-                                
-                                ?>
                                 <div class="upper">
                                     
                                     <button class="icon-btn" id="close"><i ><ion-icon name="close-circle-outline"></ion-icon></i></button>
@@ -406,14 +407,14 @@ echo "</table>";
                             <div class="form-group">
                                 <label>Dosen</label>
                                 <select class="form-control dependant" name="dos" id="ta" required onchange="viewDt();">
-                                <option value="" selected="selected" class="null"><?=$namaDosen?></option>
+                                <option value="<?php echo $row['namapegawai']?>" selected="selected" class="null"></option>
                                 
                             </select><br>
                             </div>
                             <div class="form-group">
                                 <label>Tahun Ajaran</label>
                                 <select class="form-control dependant" name="dos" id="ta" required onchange="viewDt();">
-                                <option value="-" selected="selected" class="null"><?$tahunAjar?></option>
+                                <option value="-" selected="selected" class="null">halo</option>
                                 <option value="">1</option>
                                 <option value="">1</option>
                             </select><br>
@@ -421,7 +422,7 @@ echo "</table>";
                             <div class="form-group">
                                 <label>Semester</label>
                                 <select class="form-control dependant" name="dos" id="ta" required onchange="viewDt();">
-                                <option value="" selected="selected" class="null"><?$sems?></option>
+                                <option value="" selected="selected" class="null">halo</option>
                                 <option value="">1</option>
                                 <option value="">1</option>
                             </select><br>
@@ -435,7 +436,8 @@ echo "</table>";
                             </div>
                             <button type="submit" name="update" style="background-color:burlywood; border:none; padding:5px;"><a href="#" style="text-decoration: none; color:black; text-transform:uppercase;">simpan</a></button>
 
-                            </form>  
+                            </form> 
+                            <?php }?>
                             </div>
                         </div>
                     </div>
@@ -456,7 +458,7 @@ echo "</table>";
     <script>
         const openButton = document.getElementById("editButton");
         const closeButton = document.getElementById("close");
-        const popupFormContainer = document.getElementById("popUpForm");
+        const popupFormContainer = document.getElementById("popUpForm<?php echo $row['nip']?>");
 
         // Event listeners
         // openButton.addEventListener("click", function() {

@@ -61,7 +61,7 @@ button a:hover{
     display: none;
     position: fixed;
     top: 0;
-    margin-top: 50px;
+    margin-top: 10px;
     border-radius: 10px;
     width: 400px;
     height: auto;
